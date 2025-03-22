@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      books: {
+        Row: {
+          author: string
+          category: string[]
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          folder: string | null
+          id: string
+          page_count: number | null
+          pdf_url: string | null
+          publication_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author: string
+          category?: string[]
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          folder?: string | null
+          id?: string
+          page_count?: number | null
+          pdf_url?: string | null
+          publication_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          category?: string[]
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          folder?: string | null
+          id?: string
+          page_count?: number | null
+          pdf_url?: string | null
+          publication_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dd: {
         Row: {
           created_at: string
@@ -23,6 +68,62 @@ export type Database = {
           id?: number
         }
         Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      user_saved_books: {
+        Row: {
+          book_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_saved_books_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

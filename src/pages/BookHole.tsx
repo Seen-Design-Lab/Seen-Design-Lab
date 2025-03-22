@@ -10,21 +10,11 @@ import BookReader from '../components/BookReader';
 import { useAuth } from '@/components/Auth/AuthContext';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { Database } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
 // Types
-type BookType = {
-  id: string;
-  title: string;
-  author: string;
-  cover_image: string | null;
-  categories: string[];
-  folder: string | null;
-  publication_date: string | null;
-  pdf_url: string | null;
-  page_count: number | null;
-  description?: string | null;
-};
+type BookType = Database['public']['Tables']['books']['Row'];
+type SavedBookType = Database['public']['Tables']['user_saved_books']['Row'];
 
 interface CategoryType {
   id: string;
@@ -95,8 +85,7 @@ const BookHole = () => {
       
       if (error) throw error;
       
-      // Transform the data to match our BookType interface
-      return data.map(book => ({
+      return data.map((book: BookType) => ({
         id: book.id,
         title: book.title,
         author: book.author,
@@ -123,7 +112,7 @@ const BookHole = () => {
         .eq('user_id', user.id);
       
       if (error) throw error;
-      return data.map(item => item.book_id);
+      return data.map((item: { book_id: string }) => item.book_id);
     },
     enabled: !!user,
   });
