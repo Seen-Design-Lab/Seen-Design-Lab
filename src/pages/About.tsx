@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import AboutSection from '../components/AboutSection';
@@ -92,7 +93,7 @@ const About = () => {
                   },
                   {
                     title: 'Innovation',
-                    description: 'We embrace new ideas and technologies, constantly pushing the boundaries of what's possible.'
+                    description: 'We embrace new ideas and technologies, constantly pushing the boundaries of what\'s possible.'
                   },
                   {
                     title: 'Collaboration',
@@ -100,7 +101,7 @@ const About = () => {
                   },
                   {
                     title: 'Simplicity',
-                    description: 'We value simplicity in our designs, striving to create intuitive experiences that don't overwhelm users.'
+                    description: 'We value simplicity in our designs, striving to create intuitive experiences that don\'t overwhelm users.'
                   }
                 ].map((value, index) => (
                   <div key={index} className="bg-white/5 rounded-lg p-6">

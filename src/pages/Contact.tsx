@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ContactSection from '../components/ContactSection';
@@ -100,7 +101,7 @@ const Contact = () => {
               },
               {
                 question: 'How long does a typical project take?',
-                answer: 'Project timelines vary depending on complexity and scope. A simple website might take 4-6 weeks, while a complex application could take 3-6 months. We'll provide a detailed timeline during our initial consultation.'
+                answer: 'Project timelines vary depending on complexity and scope. A simple website might take 4-6 weeks, while a complex application could take 3-6 months. We\'ll provide a detailed timeline during our initial consultation.'
               },
               {
                 question: 'What is your design process?',
@@ -112,7 +113,7 @@ const Contact = () => {
               },
               {
                 question: 'How do you price your services?',
-                answer: 'We typically work on a project basis with fixed pricing based on the scope and requirements. For some clients, we also offer retainer arrangements for ongoing work. We're transparent about costs and will provide detailed quotes after understanding your needs.'
+                answer: 'We typically work on a project basis with fixed pricing based on the scope and requirements. For some clients, we also offer retainer arrangements for ongoing work. We\'re transparent about costs and will provide detailed quotes after understanding your needs.'
               }
             ].map((faq, index) => (
               <div key={index} className="glass-light rounded-xl p-6 hover:glass transition-all duration-300">
