@@ -10,20 +10,21 @@ import BookReader from '../components/BookReader';
 import { useAuth } from '@/components/Auth/AuthContext';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import { Database } from '@/integrations/supabase/types';
 
 // Types
-interface BookType {
+type BookType = {
   id: string;
   title: string;
   author: string;
-  cover_image: string;
+  cover_image: string | null;
   categories: string[];
-  folder: string;
-  publication_date: string;
-  pdf_url: string;
-  page_count: number;
-  description?: string;
-}
+  folder: string | null;
+  publication_date: string | null;
+  pdf_url: string | null;
+  page_count: number | null;
+  description?: string | null;
+};
 
 interface CategoryType {
   id: string;
@@ -99,12 +100,12 @@ const BookHole = () => {
         id: book.id,
         title: book.title,
         author: book.author,
-        cover_image: book.cover_image || '',
+        cover_image: book.cover_image,
         categories: book.category || [],
-        folder: book.folder || '',
-        publication_date: book.publication_date || '',
-        pdf_url: book.pdf_url || '',
-        page_count: book.page_count || 0,
+        folder: book.folder,
+        publication_date: book.publication_date,
+        pdf_url: book.pdf_url,
+        page_count: book.page_count,
         description: book.description,
       }));
     },
@@ -338,7 +339,7 @@ const BookHole = () => {
                               </span>
                             </div>
                             <span className="text-xs text-white/40 px-1.5 py-0.5 bg-white/5 rounded">
-                              {filteredBooks.filter(book => book.folder === folder.id).length}
+                              {filteredBooks?.filter(book => book.folder === folder.id).length || 0}
                             </span>
                           </button>
                           
@@ -377,7 +378,7 @@ const BookHole = () => {
           {/* Toggle Sidebar Button (Mobile) */}
           <div className="md:hidden fixed bottom-6 left-6 z-30">
             <button
-              onClick={toggleSidebar}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="w-12 h-12 glass rounded-full flex items-center justify-center shadow-lg"
             >
               {isSidebarOpen ? <X size={20} /> : <Book size={20} />}
@@ -396,7 +397,7 @@ const BookHole = () => {
                 
                 <div className="flex items-center">
                   <button 
-                    onClick={toggleSidebar}
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                     className="hidden md:flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
                   >
                     {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
@@ -419,7 +420,7 @@ const BookHole = () => {
                     There was an error loading the books. Please try again later.
                   </p>
                 </div>
-              ) : filteredBooks.length === 0 ? (
+              ) : filteredBooks?.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-full bg-white/5 mx-auto flex items-center justify-center mb-4">
                     <Search size={24} className="text-white/40" />
@@ -431,7 +432,7 @@ const BookHole = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredBooks.map(book => (
+                  {filteredBooks?.map(book => (
                     <motion.div
                       key={book.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -443,7 +444,7 @@ const BookHole = () => {
                       <div className="relative aspect-[2/3] overflow-hidden rounded-lg mb-3 group-hover:shadow-lg transition-shadow duration-300">
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10"></div>
                         <img 
-                          src={book.cover_image} 
+                          src={book.cover_image || 'https://via.placeholder.com/300x450?text=No+Cover'} 
                           alt={book.title}
                           className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500"
                         />
@@ -464,11 +465,11 @@ const BookHole = () => {
                           <div className="flex items-center text-white/60 text-xs space-x-3">
                             <span className="flex items-center">
                               <FileText size={12} className="mr-1" />
-                              {book.page_count} pages
+                              {book.page_count || 'Unknown'} pages
                             </span>
                             <span className="flex items-center">
                               <Clock size={12} className="mr-1" />
-                              {book.publication_date}
+                              {book.publication_date || 'Unknown'}
                             </span>
                           </div>
                         </div>
@@ -505,7 +506,7 @@ const BookHole = () => {
       {/* Book Reader Modal */}
       {isReaderOpen && selectedBook && (
         <BookReader 
-          pdfUrl={selectedBook.pdf_url} 
+          pdfUrl={selectedBook.pdf_url || ""} 
           title={selectedBook.title} 
           onClose={closeReader} 
         />
