@@ -1,29 +1,65 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Book, FolderOpen, Tag, Filter, BookOpen, Book as BookIcon, FileText, X, Plus, Clock, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, Book, FolderOpen, Tag, Filter, BookOpen, Book as BookIcon, FileText, X, Plus, Clock, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import BookReader from '../components/BookReader';
+import { useAuth } from '@/components/Auth/AuthContext';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
+
+// Types
+interface BookType {
+  id: string;
+  title: string;
+  author: string;
+  cover_image: string;
+  categories: string[];
+  folder: string;
+  publication_date: string;
+  pdf_url: string;
+  page_count: number;
+  description?: string;
+}
+
+interface CategoryType {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface FolderType {
+  id: string;
+  name: string;
+  children: {
+    id: string;
+    name: string;
+  }[];
+}
 
 const BookHole = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedBook, setSelectedBook] = useState<any | null>(null);
+  const [selectedBook, setSelectedBook] = useState<BookType | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isReaderOpen, setIsReaderOpen] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   
-  // Mock data
-  const categories = [
+  // Categories data
+  const categories: CategoryType[] = [
     { id: 'design', name: 'Design', color: 'bg-blue-500' },
     { id: 'technology', name: 'Technology', color: 'bg-purple-500' },
     { id: 'business', name: 'Business', color: 'bg-green-500' },
     { id: 'productivity', name: 'Productivity', color: 'bg-yellow-500' },
   ];
   
-  const folders = [
+  // Folders data
+  const folders: FolderType[] = [
     { 
       id: 'design-books', 
       name: 'Design Books',
@@ -48,74 +84,106 @@ const BookHole = () => {
     },
   ];
   
-  const books = [
-    {
-      id: 1,
-      title: 'Design Systems Handbook',
-      author: 'Marco Suarez, Jina Anne, Katie Sylor-Miller',
-      coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000&auto=format&fit=crop',
-      categories: ['design'],
-      folder: 'design-books',
-      publicationDate: '2022',
-      pdfUrl: 'https://example.com/design-systems-handbook.pdf',
-      pageCount: 127
+  // Fetch books from Supabase
+  const { data: booksData, isLoading, error } = useQuery({
+    queryKey: ['books'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('books')
+        .select('*');
+      
+      if (error) throw error;
+      
+      // Transform the data to match our BookType interface
+      return data.map(book => ({
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        cover_image: book.cover_image || '',
+        categories: book.category || [],
+        folder: book.folder || '',
+        publication_date: book.publication_date || '',
+        pdf_url: book.pdf_url || '',
+        page_count: book.page_count || 0,
+        description: book.description,
+      }));
     },
-    {
-      id: 2,
-      title: 'Atomic Design',
-      author: 'Brad Frost',
-      coverImage: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=1000&auto=format&fit=crop',
-      categories: ['design'],
-      folder: 'design-books',
-      publicationDate: '2021',
-      pdfUrl: 'https://example.com/atomic-design.pdf',
-      pageCount: 198
+  });
+  
+  // Fetch saved books for the current user
+  const { data: savedBooks, refetch: refetchSavedBooks } = useQuery({
+    queryKey: ['savedBooks', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('user_saved_books')
+        .select('book_id')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      return data.map(item => item.book_id);
     },
-    {
-      id: 3,
-      title: 'Clean Code',
-      author: 'Robert C. Martin',
-      coverImage: 'https://images.unsplash.com/photo-1629208113515-4ce8ce3de79d?q=80&w=1000&auto=format&fit=crop',
-      categories: ['technology'],
-      folder: 'tech-books',
-      publicationDate: '2008',
-      pdfUrl: 'https://example.com/clean-code.pdf',
-      pageCount: 464
-    },
-    {
-      id: 4,
-      title: 'Zero to One',
-      author: 'Peter Thiel',
-      coverImage: 'https://images.unsplash.com/photo-1592496431122-2349e0fbc666?q=80&w=1000&auto=format&fit=crop',
-      categories: ['business'],
-      folder: 'business-books',
-      publicationDate: '2014',
-      pdfUrl: 'https://example.com/zero-to-one.pdf',
-      pageCount: 224
-    },
-    {
-      id: 5,
-      title: 'The Design of Everyday Things',
-      author: 'Don Norman',
-      coverImage: 'https://images.unsplash.com/photo-1544967082-d9d25d867d66?q=80&w=1000&auto=format&fit=crop',
-      categories: ['design'],
-      folder: 'design-books',
-      publicationDate: '2013',
-      pdfUrl: 'https://example.com/design-of-everyday-things.pdf',
-      pageCount: 368
-    },
-    {
-      id: 6,
-      title: 'JavaScript: The Good Parts',
-      author: 'Douglas Crockford',
-      coverImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop',
-      categories: ['technology'],
-      folder: 'tech-books',
-      publicationDate: '2008',
-      pdfUrl: 'https://example.com/javascript-good-parts.pdf',
-      pageCount: 176
+    enabled: !!user,
+  });
+  
+  // Check if a book is saved by the current user
+  const isBookSaved = (bookId: string) => {
+    return savedBooks?.includes(bookId);
+  };
+  
+  // Save or unsave a book
+  const toggleSaveBook = async (bookId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the book
+    
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save books.",
+        variant: "destructive",
+      });
+      return;
     }
-  ];
+    
+    try {
+      if (isBookSaved(bookId)) {
+        // Unsave the book
+        await supabase
+          .from('user_saved_books')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('book_id', bookId);
+        
+        toast({
+          title: "Book removed",
+          description: "The book has been removed from your saved collection.",
+        });
+      } else {
+        // Save the book
+        await supabase
+          .from('user_saved_books')
+          .insert({
+            user_id: user.id,
+            book_id: bookId,
+          });
+        
+        toast({
+          title: "Book saved",
+          description: "The book has been added to your saved collection.",
+        });
+      }
+      
+      // Refetch the saved books
+      refetchSavedBooks();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was an error processing your request.",
+        variant: "destructive",
+      });
+      console.error(error);
+    }
+  };
   
   const toggleFolder = (folderId: string) => {
     setExpandedFolders(prev => 
@@ -129,7 +197,7 @@ const BookHole = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
   
-  const openReader = (book: any) => {
+  const openReader = (book: BookType) => {
     setSelectedBook(book);
     setIsReaderOpen(true);
     document.body.style.overflow = 'hidden';
@@ -140,12 +208,13 @@ const BookHole = () => {
     document.body.style.overflow = '';
   };
   
-  const filteredBooks = books.filter(book => {
+  // Filter books based on search query and selected category
+  const filteredBooks = booksData?.filter(book => {
     const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          book.author.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || book.categories.includes(selectedCategory);
     return matchesSearch && matchesCategory;
-  });
+  }) || [];
   
   // Focus on search input when pressing Ctrl+K or Cmd+K
   useEffect(() => {
@@ -269,7 +338,7 @@ const BookHole = () => {
                               </span>
                             </div>
                             <span className="text-xs text-white/40 px-1.5 py-0.5 bg-white/5 rounded">
-                              {books.filter(book => book.folder === folder.id).length}
+                              {filteredBooks.filter(book => book.folder === folder.id).length}
                             </span>
                           </button>
                           
@@ -292,14 +361,14 @@ const BookHole = () => {
                     </div>
                   </div>
                   
-                  <div className="px-4 py-3 border-t border-white/10">
-                    <button className="w-full flex items-center justify-between px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
-                      <div className="flex items-center">
-                        <Plus size={16} className="text-white/70 mr-2" />
-                        <span className="text-sm font-medium">New Collection</span>
-                      </div>
-                    </button>
-                  </div>
+                  {user && (
+                    <div className="px-4 py-3 border-t border-white/10">
+                      <Button className="w-full" variant="outline" size="sm">
+                        <Plus size={16} className="mr-2" />
+                        New Collection
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </motion.aside>
             )}
@@ -335,7 +404,22 @@ const BookHole = () => {
                 </div>
               </div>
               
-              {filteredBooks.length === 0 ? (
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 rounded-full border-2 border-seen-accent1 border-t-transparent animate-spin mx-auto mb-4"></div>
+                  <p className="text-white/70">Loading books...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 rounded-full bg-white/5 mx-auto flex items-center justify-center mb-4">
+                    <X size={24} className="text-destructive" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">Error loading books</h3>
+                  <p className="text-white/60">
+                    There was an error loading the books. Please try again later.
+                  </p>
+                </div>
+              ) : filteredBooks.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-full bg-white/5 mx-auto flex items-center justify-center mb-4">
                     <Search size={24} className="text-white/40" />
@@ -359,7 +443,7 @@ const BookHole = () => {
                       <div className="relative aspect-[2/3] overflow-hidden rounded-lg mb-3 group-hover:shadow-lg transition-shadow duration-300">
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10"></div>
                         <img 
-                          src={book.coverImage} 
+                          src={book.cover_image} 
                           alt={book.title}
                           className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500"
                         />
@@ -380,14 +464,28 @@ const BookHole = () => {
                           <div className="flex items-center text-white/60 text-xs space-x-3">
                             <span className="flex items-center">
                               <FileText size={12} className="mr-1" />
-                              {book.pageCount} pages
+                              {book.page_count} pages
                             </span>
                             <span className="flex items-center">
                               <Clock size={12} className="mr-1" />
-                              {book.publicationDate}
+                              {book.publication_date}
                             </span>
                           </div>
                         </div>
+                        
+                        {/* Save button */}
+                        {user && (
+                          <button
+                            onClick={(e) => toggleSaveBook(book.id, e)}
+                            className="absolute top-3 right-3 z-20 p-2 rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 transition-colors"
+                          >
+                            {isBookSaved(book.id) ? (
+                              <BookOpen size={16} className="text-seen-accent1" />
+                            ) : (
+                              <Book size={16} className="text-white" />
+                            )}
+                          </button>
+                        )}
                       </div>
                       <h3 className="font-medium mb-1 group-hover:text-seen-accent1 transition-colors duration-300">
                         {book.title}
@@ -407,7 +505,7 @@ const BookHole = () => {
       {/* Book Reader Modal */}
       {isReaderOpen && selectedBook && (
         <BookReader 
-          pdfUrl={selectedBook.pdfUrl} 
+          pdfUrl={selectedBook.pdf_url} 
           title={selectedBook.title} 
           onClose={closeReader} 
         />
