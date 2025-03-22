@@ -1,12 +1,33 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useEffect } from 'react';
+import Hero from '../components/Hero';
+import AboutSection from '../components/AboutSection';
+import WorkSection from '../components/WorkSection';
+import ProductsSection from '../components/ProductsSection';
+import ContactSection from '../components/ContactSection';
+import Footer from '../components/Footer';
+import Header from '../components/Header';
 
 const Index = () => {
+  // Smooth page transition effect
+  useEffect(() => {
+    document.body.classList.add('loaded');
+    return () => {
+      document.body.classList.remove('loaded');
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-seen-dark overflow-x-hidden">
+      <Header />
+      <main>
+        <Hero />
+        <AboutSection />
+        <WorkSection />
+        <ProductsSection />
+        <ContactSection />
+      </main>
+      <Footer />
     </div>
   );
 };
