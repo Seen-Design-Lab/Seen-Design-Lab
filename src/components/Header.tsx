@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Book, BookOpen } from 'lucide-react';
@@ -9,13 +10,14 @@ const Header = () => {
 
   return (
     <header className="bg-seen-dark/80 backdrop-blur-md fixed top-0 left-0 w-full z-40 border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center">
         <Link to="/" className="flex items-center text-xl font-bold">
           <BookOpen size={24} className="mr-2 text-gradient-blue" />
           <span className="text-white">Seen Design Lab</span>
         </Link>
 
-        <nav className="flex items-center space-x-6">
+        {/* Center the navigation items */}
+        <nav className="flex items-center space-x-6 mx-auto">
           <Link to="/" className="text-white/80 hover:text-white transition-colors">
             Home
           </Link>
@@ -40,11 +42,10 @@ const Header = () => {
           )}
         </nav>
 
-        {/* Add this somewhere in the header, typically on the right side */}
-        <div className="ml-auto">
+        {/* User menu on the right side */}
+        <div>
           <UserMenu />
         </div>
-
       </div>
     </header>
   );
