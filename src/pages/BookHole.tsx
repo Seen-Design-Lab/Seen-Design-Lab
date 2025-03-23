@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Book, FolderOpen, Tag, Filter, BookOpen, Book as BookIcon, FileText, X, Plus, Clock, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -85,18 +84,7 @@ const BookHole = () => {
       
       if (error) throw error;
       
-      return data.map((book: BookType) => ({
-        id: book.id,
-        title: book.title,
-        author: book.author,
-        cover_image: book.cover_image,
-        categories: book.category || [],
-        folder: book.folder,
-        publication_date: book.publication_date,
-        pdf_url: book.pdf_url,
-        page_count: book.page_count,
-        description: book.description,
-      }));
+      return data || [];
     },
   });
   
@@ -112,7 +100,7 @@ const BookHole = () => {
         .eq('user_id', user.id);
       
       if (error) throw error;
-      return data.map((item: { book_id: string }) => item.book_id);
+      return data?.map((item) => item.book_id) || [];
     },
     enabled: !!user,
   });
@@ -202,7 +190,7 @@ const BookHole = () => {
   const filteredBooks = booksData?.filter(book => {
     const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          book.author.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || book.categories.includes(selectedCategory);
+    const matchesCategory = !selectedCategory || book.category.includes(selectedCategory);
     return matchesSearch && matchesCategory;
   }) || [];
   
@@ -439,7 +427,7 @@ const BookHole = () => {
                         />
                         <div className="absolute bottom-3 left-3 right-3 z-20">
                           <div className="flex items-center space-x-2 mb-2">
-                            {book.categories.map(categoryId => {
+                            {book.category.map(categoryId => {
                               const category = categories.find(c => c.id === categoryId);
                               return category ? (
                                 <span 
