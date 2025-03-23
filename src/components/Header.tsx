@@ -1,15 +1,28 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Book, BookOpen, Menu } from 'lucide-react';
 import UserMenu from './Auth/UserMenu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 const Header = () => {
   const location = useLocation();
   const isBookHolePage = location.pathname === '/book-hole';
   const isMobile = useIsMobile();
+  const [scrolled, setScrolled] = useState(false);
+  
+  // Add scroll event listener
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 100;
+      setScrolled(isScrolled);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const NavItems = () => (
     <>
@@ -39,16 +52,31 @@ const Header = () => {
   );
 
   return (
-    <header className="bg-seen-dark/80 backdrop-blur-md fixed top-0 left-0 w-full z-40 border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between md:justify-start">
-        <Link to="/" className="flex items-center text-xl font-bold">
-          <BookOpen size={24} className="mr-2 text-gradient-blue" />
-          <span className="text-white">Seen Design Lab</span>
-        </Link>
+    <header 
+      className={cn(
+        "fixed w-full z-40 border-white/5 transition-all duration-500",
+        scrolled 
+          ? "bottom-4 top-auto left-1/2 -translate-x-1/2 max-w-lg w-[90%] bg-seen-dark/90 backdrop-blur-md rounded-full border shadow-lg" 
+          : "bg-seen-dark/80 backdrop-blur-md top-0 left-0 border-b"
+      )}
+    >
+      <div className={cn(
+        "mx-auto px-4 h-16 flex items-center",
+        scrolled ? "justify-center" : "justify-between md:justify-start max-w-7xl"
+      )}>
+        {!scrolled && (
+          <Link to="/" className="flex items-center text-xl font-bold">
+            <BookOpen size={24} className="mr-2 text-gradient-blue" />
+            <span className="text-white">Seen Design Lab</span>
+          </Link>
+        )}
 
         {/* Desktop Navigation */}
         {!isMobile ? (
-          <nav className="flex items-center space-x-6 mx-auto">
+          <nav className={cn(
+            "flex items-center space-x-6", 
+            scrolled ? "" : "mx-auto"
+          )}>
             <NavItems />
           </nav>
         ) : (
@@ -65,9 +93,11 @@ const Header = () => {
         )}
 
         {/* User menu */}
-        <div className={isMobile ? "hidden md:block" : ""}>
-          <UserMenu />
-        </div>
+        {!scrolled && (
+          <div className={isMobile ? "hidden md:block" : ""}>
+            <UserMenu />
+          </div>
+        )}
       </div>
     </header>
   );

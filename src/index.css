@@ -43,7 +43,7 @@
   }
 
   body {
-    @apply bg-seen-dark text-foreground antialiased;
+    @apply bg-seen-dark text-foreground antialiased pb-24;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
   }
 
