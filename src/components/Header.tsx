@@ -1,11 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, BookOpen, Menu } from 'lucide-react';
+import { Book, BookOpen, Menu, AlignJustify } from 'lucide-react';
 import UserMenu from './Auth/UserMenu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { 
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerTrigger
+} from '@/components/ui/drawer';
 
 const Header = () => {
   const location = useLocation();
@@ -51,20 +57,40 @@ const Header = () => {
     </>
   );
 
+  // Mobile floating menu button (when scrolled)
+  if (isMobile && scrolled) {
+    return (
+      <Drawer>
+        <DrawerTrigger asChild>
+          <button className="fixed bottom-4 right-4 z-50 w-14 h-14 rounded-full bg-seen-dark/90 shadow-lg border border-white/10 backdrop-blur-md flex items-center justify-center">
+            <AlignJustify size={24} className="text-white" />
+          </button>
+        </DrawerTrigger>
+        <DrawerContent className="bg-seen-dark border-white/10">
+          <div className="p-4">
+            <nav className="flex flex-col space-y-6 mt-6 mb-12">
+              <NavItems />
+            </nav>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <header 
       className={cn(
         "fixed w-full z-40 border-white/5 transition-all duration-500",
-        scrolled 
+        scrolled && !isMobile
           ? "bottom-4 top-auto left-1/2 -translate-x-1/2 max-w-lg w-[90%] bg-seen-dark/90 backdrop-blur-md rounded-full border shadow-lg" 
           : "bg-seen-dark/80 backdrop-blur-md top-0 left-0 border-b"
       )}
     >
       <div className={cn(
         "mx-auto px-4 h-16 flex items-center",
-        scrolled ? "justify-center" : "justify-between md:justify-start max-w-7xl"
+        scrolled && !isMobile ? "justify-center" : "justify-between md:justify-start max-w-7xl"
       )}>
-        {!scrolled && (
+        {(!scrolled || isMobile) && (
           <Link to="/" className="flex items-center text-xl font-bold">
             <BookOpen size={24} className="mr-2 text-gradient-blue" />
             <span className="text-white">Seen Design Lab</span>
@@ -93,7 +119,7 @@ const Header = () => {
         )}
 
         {/* User menu */}
-        {!scrolled && (
+        {(!scrolled || isMobile) && (
           <div className={isMobile ? "hidden md:block" : ""}>
             <UserMenu />
           </div>
