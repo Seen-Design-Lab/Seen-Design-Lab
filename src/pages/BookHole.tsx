@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Book, FolderOpen, Tag, Filter, BookOpen, Book as BookIcon, FileText, X, Plus, Clock, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -6,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import BookReader from '../components/BookReader';
+import DriveIntegration from '../components/DriveIntegration';
 import { useAuth } from '@/components/Auth/AuthContext';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
@@ -46,6 +48,7 @@ const BookHole = () => {
     { id: 'technology', name: 'Technology', color: 'bg-purple-500' },
     { id: 'business', name: 'Business', color: 'bg-green-500' },
     { id: 'productivity', name: 'Productivity', color: 'bg-yellow-500' },
+    { id: 'user-uploaded', name: 'My Uploads', color: 'bg-pink-500' },
   ];
   
   // Folders data
@@ -72,10 +75,15 @@ const BookHole = () => {
       name: 'Business Books',
       children: []
     },
+    {
+      id: 'user-uploads',
+      name: 'My Uploads',
+      children: []
+    }
   ];
   
   // Fetch books from Supabase
-  const { data: booksData, isLoading, error } = useQuery({
+  const { data: booksData, isLoading, error, refetch: refetchBooks } = useQuery({
     queryKey: ['books'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -115,6 +123,49 @@ const BookHole = () => {
     },
     enabled: !!user,
   });
+  
+  // Handle Google Drive callback from URL
+  useEffect(() => {
+    const handleGoogleDriveCallback = async () => {
+      const url = new URL(window.location.href);
+      const callbackParam = url.searchParams.get('callback');
+      const codeParam = url.searchParams.get('code');
+      
+      if (callbackParam === 'google-drive' && codeParam && user) {
+        try {
+          // Process the callback via the edge function
+          const { data, error } = await supabase.functions.invoke('google-drive-auth/callback', {
+            method: 'POST',
+            body: { code: codeParam },
+          });
+          
+          if (error) throw error;
+          
+          toast({
+            title: "Google Drive Connected",
+            description: "Your account has been successfully connected to Google Drive.",
+          });
+          
+          // Remove query parameters
+          url.searchParams.delete('callback');
+          url.searchParams.delete('code');
+          window.history.replaceState({}, '', url.toString());
+          
+        } catch (error) {
+          console.error('Error processing Google Drive callback:', error);
+          toast({
+            title: "Connection Error",
+            description: "There was an error connecting to Google Drive. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+    
+    if (user) {
+      handleGoogleDriveCallback();
+    }
+  }, [user]);
   
   // Check if a book is saved by the current user
   const isBookSaved = (bookId: string) => {
@@ -352,10 +403,7 @@ const BookHole = () => {
                   
                   {user && (
                     <div className="px-4 py-3 border-t border-white/10">
-                      <Button className="w-full" variant="outline" size="sm">
-                        <Plus size={16} className="mr-2" />
-                        New Collection
-                      </Button>
+                      <DriveIntegration refetchBooks={refetchBooks} />
                     </div>
                   )}
                 </div>

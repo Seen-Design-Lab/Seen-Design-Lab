@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Bookmark, Home, Info, Download, Share, X, Maximize, Minimize } from 'lucide-react';
@@ -97,9 +98,11 @@ const BookReader: React.FC<BookReaderProps> = ({ pdfUrl, title, onClose }) => {
   };
 
   // Determine if the PDF is a local or external URL
-  const isLocalPdf = pdfUrl.startsWith('/');
+  const isLocalPdf = pdfUrl.startsWith('/') || pdfUrl.startsWith(window.location.origin);
+  
+  // Use different viewer based on PDF location
   const pdfViewerUrl = isLocalPdf 
-    ? pdfUrl
+    ? pdfUrl // Use direct link for local PDFs
     : `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
   
   return (
@@ -197,6 +200,7 @@ const BookReader: React.FC<BookReaderProps> = ({ pdfUrl, title, onClose }) => {
               className="w-full h-full border-0 bg-white"
               title={`PDF Viewer - ${title}`}
               allowFullScreen
+              sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
             />
             
             {/* Loading state */}
