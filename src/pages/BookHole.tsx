@@ -84,7 +84,18 @@ const BookHole = () => {
       
       if (error) throw error;
       
-      return data || [];
+      // For local development - override the PDF URL for "Don't Shoot the Dog" to use local file
+      const modifiedData = data?.map(book => {
+        if (book.title === "Don't Shoot the Dog") {
+          return {
+            ...book,
+            pdf_url: '/pdfs/dont-shoot-the-dog.pdf'
+          };
+        }
+        return book;
+      });
+      
+      return modifiedData || [];
     },
   });
   
